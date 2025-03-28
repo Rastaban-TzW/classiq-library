@@ -168,13 +168,14 @@ def walkDown(bs: CArray[CBool], xs: QArray, qs: QArray) -> None:
 def walkUp(bs: CArray[CBool], xs: QArray, qs: QArray) -> None:
     invert(lambda: walkDown(bs, xs, qs))
 
-#Operators = list of controlled circuits, i.e. [u(control, targets)]
+#Operators = list of controlled circuits, i.e. [u(control)]
+#circuit targets should be "closured".
 #This type alias fails???
-#type Operators = QCallableList[QBit, QArray]
+#type Operators = QCallableList[QBit]
 
 #controlled uniformly-controlled gate: if q, then apply ops[xs](target).
 @qfunc(generative=True)
-def controlled_selectV(ops: QCallableList[QBit, QArray[QBit]], q: QBit, xs: QArray, target: QArray) -> None:
+def controlled_selectV(ops: QCallableList[QBit], q: QBit, xs: QArray) -> None:
     m = ops.len
     n = xs.size
     start = to_node(0,n) + [True]
@@ -182,15 +183,14 @@ def controlled_selectV(ops: QCallableList[QBit, QArray[QBit]], q: QBit, xs: QArr
 
     #Operand lists don't support slicing?!
     @qfunc(generative=True)
-    def applyAndStep(ops: QCallableList[QBit, QArray[QBit]], opsindex: CInt, start: CArray[CBool], end: CArray[CBool], xs: QArray, qs: QArray, target: QArray)  -> None:
+    def applyAndStep(ops: QCallableList[QBit], opsindex: CInt, start: CArray[CBool], end: CArray[CBool], xs: QArray, qs: QArray)  -> None:
         if (start == end):
-            ops[opsindex](qs[0], target)
+            ops[opsindex](qs[0])
             return
         else:
-            ops[opsindex](qs[0], target)
+            ops[opsindex](qs[0])
             stepRight(start, xs, qs)
-            #applyAndStep(ops[1:ops.len], increment(start), end, xs, qs, target)
-            applyAndStep(ops, opsindex+1, increment(start), end, xs, qs, target)
+            applyAndStep(ops, opsindex+1, increment(start), end, xs, qs)
             return
         return
 
@@ -206,7 +206,7 @@ def controlled_selectV(ops: QCallableList[QBit, QArray[QBit]], q: QBit, xs: QArr
             lambda: allocate(n, qs),
             lambda: [
                 walkDown(start, xsp, qs),
-                applyAndStep(ops, 0, start, end, xsp, qs, target),
+                applyAndStep(ops, 0, start, end, xsp, qs),
                 walkUp(end, xsp, qs)
             ]
         )
