@@ -185,10 +185,10 @@ def controlled_selectV(ops: QCallableList[QBit], q: QBit, xs: QArray) -> None:
     @qfunc(generative=True)
     def applyAndStep(ops: QCallableList[QBit], opsindex: CInt, start: CArray[CBool], end: CArray[CBool], xs: QArray, qs: QArray)  -> None:
         if (start == end):
-            ops[opsindex](qs[0], target)
+            ops[opsindex](qs[0])
             return
         else:
-            ops[opsindex](qs[0], target)
+            ops[opsindex](qs[0])
             stepRight(start, xs, qs)
             applyAndStep(ops, opsindex+1, increment(start), end, xs, qs)
             return
